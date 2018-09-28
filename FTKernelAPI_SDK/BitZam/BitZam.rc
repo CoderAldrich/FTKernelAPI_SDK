@@ -1,0 +1,533 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\BitZam.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""         // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\BitZam.ico"
+#endif    // Chinese (P.R.C.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PROXYSETTINGS DIALOG DISCARDABLE  0, 0, 282, 186
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Proxy Setting"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&OK",IDOK,163,164,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,219,164,50,14
+    GROUPBOX        "&Settings",1001,6,3,264,87
+    LTEXT           "&Type:",1002,16,19,55,8
+    COMBOBOX        1003,82,17,121,90,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "&Server",1004,16,36,55,8
+    EDITTEXT        1005,82,34,182,14,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "&Port:",1006,16,54,55,8
+    EDITTEXT        1007,82,52,41,14,ES_AUTOHSCROLL | ES_NUMBER | 
+                    WS_DISABLED
+    CONTROL         "&Only used when connecting tracker server",1008,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,16,71,245,10
+    GROUPBOX        "&Authentication ",1009,6,93,264,66
+    CONTROL         "&Need Auth",1010,"Button",BS_AUTOCHECKBOX | WS_DISABLED | 
+                    WS_TABSTOP,16,106,245,10
+    LTEXT           "&Username:",1011,16,123,55,8
+    LTEXT           "&Password:",1012,16,141,55,8
+    EDITTEXT        1013,71,120,99,14,ES_AUTOHSCROLL | WS_DISABLED
+    EDITTEXT        1014,71,138,99,14,ES_PASSWORD | ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    PUSHBUTTON      "&Test",1015,108,164,50,14
+END
+
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 66
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About BitZam"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "BitZam Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Copyright ? Hwycheng Leo 2004-2005",IDC_STATIC,40,25,
+                    143,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
+    LTEXT           "http://www.hwysoft.com",1001,40,41,179,8
+END
+
+IDD_BITZAM_DIALOG DIALOGEX 0, 0, 375, 271
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "BitZam"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Exit",1001,122,175,50,14
+    GROUPBOX        "&Select a torrent file",1009,7,7,361,35
+    EDITTEXT        1010,13,21,241,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "&Torrent",1011,256,12,50,14
+    GROUPBOX        "&Downloading progress",1012,7,48,305,165
+    CONTROL         "Progress1",1013,"msctls_progress32",WS_BORDER,12,60,296,
+                    14
+    LTEXT           "&Down Speed",1014,10,82,42,9
+    LTEXT           "status:",1017,13,156,294,14,0,WS_EX_STATICEDGE
+    LTEXT           "Down speed:",1018,13,97,143,14,0,WS_EX_STATICEDGE
+    LTEXT           "File size:",1019,13,136,143,14,0,WS_EX_STATICEDGE
+    LTEXT           "Left time:",1020,163,136,143,14,0,WS_EX_STATICEDGE
+    LTEXT           "Downloaded:",1021,13,117,143,14,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "&Start",1022,12,175,50,14
+    LTEXT           "Based on the Kernel of FlashBT which is free for non-commercial program.",
+                    1026,7,221,361,9
+    CONTROL         "Slider1",1015,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,51,76,52,16
+    LTEXT           "",1016,99,82,47,8
+    PUSHBUTTON      "&Proxy",1002,67,175,50,14
+    PUSHBUTTON      "&MakeTorrent",1003,177,175,50,14
+    LTEXT           "Uploaded:",1023,163,117,143,14,0,WS_EX_STATICEDGE
+    LTEXT           "&Up Speed",1024,154,82,46,9
+    CONTROL         "Slider1",1027,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,203,76,52,16
+    LTEXT           "",1028,258,80,47,8
+    LTEXT           "Up speed:",1025,163,97,143,14,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "&Sel Files",1004,233,175,50,14,WS_DISABLED
+    PUSHBUTTON      "&Add external announce",1005,12,193,105,14,WS_DISABLED
+    PUSHBUTTON      "&Add peer",1006,122,194,50,14,WS_DISABLED
+    PUSHBUTTON      "&Manual announce",1007,177,194,68,14,WS_DISABLED
+    PUSHBUTTON      "&TorrentData",1029,256,28,50,14
+    PUSHBUTTON      "FileSHA1",1031,252,194,50,14
+    PUSHBUTTON      "test",IDC_BUTTON1,318,250,50,14
+    LTEXT           "",IDC_UDP_STATUS,7,233,361,12,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "GetInfo",IDC_BUTTON2,262,250,50,14
+    PUSHBUTTON      "&DownByLink",1034,311,12,50,14
+    PUSHBUTTON      "GetLink",IDC_BUTTON3,318,47,50,14
+    PUSHBUTTON      "Button4",IDC_BUTTON4,207,250,50,14
+    PUSHBUTTON      "Button5",IDC_BUTTON5,7,250,50,14
+    PUSHBUTTON      "Button6",IDC_BUTTON6,59,250,50,14
+END
+
+IDD_MAKE_TORRENT DIALOG DISCARDABLE  0, 0, 276, 293
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MakeTorrent"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Close",IDOK,219,271,50,14,WS_GROUP
+    PUSHBUTTON      "&Start",1001,160,271,50,14,WS_GROUP
+    LTEXT           "File or directory:",IDC_STATIC,7,5,73,8
+    EDITTEXT        1004,7,18,211,14,ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "...",1005,219,18,50,14
+    CONTROL         "&File",1006,"Button",BS_AUTORADIOBUTTON | WS_GROUP,100,
+                    5,32,10
+    CONTROL         "&Directory",1007,"Button",BS_AUTORADIOBUTTON,143,5,52,
+                    10
+    LTEXT           "Main Announce URL:",IDC_STATIC,7,37,88,8
+    EDITTEXT        1008,7,61,262,44,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    LTEXT           "&Note:",IDC_STATIC,7,111,21,8
+    EDITTEXT        1009,7,121,262,36,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_WANTRETURN | WS_VSCROLL
+    EDITTEXT        1010,7,173,211,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Torrent",1011,219,173,50,14
+    LTEXT           "Torrent &Name:",IDC_STATIC,9,162,53,8
+    CONTROL         "Encryption Torrent",1012,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,233,140,10
+    EDITTEXT        1013,85,248,106,14,ES_AUTOHSCROLL
+    LTEXT           "Password:",IDC_STATIC,17,252,60,8
+    LTEXT           "CodePage:",IDC_STATIC,7,196,37,8
+    COMBOBOX        1018,47,195,216,174,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "More Announce URL list:",IDC_STATIC,11,50,93,8
+    EDITTEXT        1015,97,35,172,14,ES_AUTOHSCROLL
+    LTEXT           "Piece Size:",IDC_STATIC,8,216,45,8
+    COMBOBOX        1017,61,214,122,174,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "Include SHA1 of single file",1014,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,267,140,10
+END
+
+IDD_DLG_MTPOGRESS DIALOG DISCARDABLE  0, 0, 235, 53
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Make Torrent Progress"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Progress1",1002,"msctls_progress32",WS_BORDER,7,7,221,
+                    14
+    PUSHBUTTON      "OK",1,53,32,50,14
+    PUSHBUTTON      "Cancel",2,117,32,50,14,WS_DISABLED
+END
+
+IDD_DLG_OPEN_TORRENT DIALOG DISCARDABLE  0, 0, 271, 72
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Open Torrent file"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,214,51,50,14,WS_GROUP
+    EDITTEXT        1003,7,27,205,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "&Dir",1001,214,27,50,14
+    EDITTEXT        1002,49,7,103,14,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "&Password:",IDC_STATIC,7,8,37,8
+END
+
+IDD_DLG_TORRENT_FILES DIALOG DISCARDABLE  0, 0, 271, 255
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select Files"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,214,234,50,14,WS_GROUP
+    CONTROL         "List1",1011,"SysListView32",WS_BORDER | WS_TABSTOP,7,23,
+                    257,189
+    LTEXT           "Files:",-1,7,9,39,8
+    PUSHBUTTON      "&Select All",1004,7,218,57,14
+    PUSHBUTTON      "&Invert Select",1005,67,218,57,14
+    PUSHBUTTON      "&Deselect All",1006,128,218,57,14
+END
+
+IDD_DLG_ADD_ANNOUNCE DIALOG DISCARDABLE  0, 0, 235, 49
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add announce"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,64,28,50,14,WS_GROUP
+    EDITTEXT        1001,7,7,220,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Cancel",IDCANCEL,123,28,50,14
+END
+
+IDD_DLG_ADD_PEER DIALOG DISCARDABLE  0, 0, 210, 49
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add announce"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,59,28,50,14,WS_GROUP
+    CONTROL         "IPAddress1",1001,"SysIPAddress32",WS_TABSTOP,26,7,100,
+                    15
+    EDITTEXT        1002,156,7,40,14,ES_AUTOHSCROLL
+    LTEXT           "IP:",IDC_STATIC,7,9,13,8
+    LTEXT           "Port:",IDC_STATIC,129,9,21,8
+    PUSHBUTTON      "Cancel",IDCANCEL,123,28,50,14
+END
+
+IDD_DLG_DWON_LINKURL DIALOG DISCARDABLE  0, 0, 327, 74
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Link URL"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,67,47,50,14,WS_GROUP
+    EDITTEXT        1001,42,7,220,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Cancel",IDCANCEL,123,47,50,14
+    LTEXT           "Torrent:",IDC_STATIC,7,7,33,8
+    PUSHBUTTON      "Torrent",IDC_BUTTON1,267,7,50,14
+    EDITTEXT        1002,41,26,279,14,ES_AUTOHSCROLL
+END
+
+IDD_DLG_ADD_DOWNBYLINK DIALOG DISCARDABLE  0, 0, 310, 71
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Add announce"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,66,47,50,14,WS_GROUP
+    EDITTEXT        1001,7,7,290,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Cancel",IDCANCEL,125,47,50,14
+    EDITTEXT        1002,7,26,241,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Torrents",IDC_BUTTON1,253,26,50,14
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "\0"
+            VALUE "FileDescription", "BitZam MFC Application\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "BitZam\0"
+            VALUE "LegalCopyright", "Copyright (C) 2005\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "BitZam.EXE\0"
+            VALUE "ProductName", "BitZam Application\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_PROXYSETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 275
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 179
+    END
+
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 59
+    END
+
+    IDD_BITZAM_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 368
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 264
+    END
+
+    IDD_MAKE_TORRENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 269
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 287
+    END
+
+    IDD_DLG_MTPOGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 46
+    END
+
+    IDD_DLG_OPEN_TORRENT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 264
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
+    END
+
+    IDD_DLG_TORRENT_FILES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 264
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_DLG_ADD_ANNOUNCE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 228
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 42
+    END
+
+    IDD_DLG_ADD_PEER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 42
+    END
+
+    IDD_DLG_DWON_LINKURL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 320
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 67
+    END
+
+    IDD_DLG_ADD_DOWNBYLINK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 303
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 64
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_PROXYSETTINGS DLGINIT
+BEGIN
+    1003, 0x403, 9, 0
+0x6f4e, 0x5020, 0x6f72, 0x7978, "\000" 
+    1003, 0x403, 7, 0
+0x6f53, 0x6b63, 0x3473, "\000" 
+    1003, 0x403, 8, 0
+0x6f53, 0x6b63, 0x3473, 0x0061, 
+    1003, 0x403, 7, 0
+0x6f53, 0x6b63, 0x3573, "\000" 
+    1003, 0x403, 8, 0
+0x5448, 0x5054, 0x2e31, 0x0031, 
+    0
+END
+
+IDD_MAKE_TORRENT DLGINIT
+BEGIN
+    1017, 0x403, 10, 0
+0x7541, 0x6f74, 0x616d, 0x6974, 0x0063, 
+    1017, 0x403, 18, 0
+0x3233, 0x4b20, 0x2042, 0x3128, 0x3230, 0x2034, 0x202a, 0x3233, 0x0029, 
+
+    1017, 0x403, 18, 0
+0x3436, 0x4b20, 0x2042, 0x3128, 0x3230, 0x2034, 0x202a, 0x3436, 0x0029, 
+
+    1017, 0x403, 20, 0
+0x3231, 0x2038, 0x424b, 0x2820, 0x3031, 0x3432, 0x2a20, 0x3120, 0x3832, 
+0x0029, 
+    1017, 0x403, 20, 0
+0x3532, 0x2036, 0x424b, 0x2820, 0x3031, 0x3432, 0x2a20, 0x3220, 0x3635, 
+0x0029, 
+    1017, 0x403, 20, 0
+0x3135, 0x2032, 0x424b, 0x2820, 0x3031, 0x3432, 0x2a20, 0x3520, 0x3231, 
+0x0029, 
+    1017, 0x403, 23, 0
+0x2031, 0x424d, 0x2820, 0x3031, 0x3432, 0x2a20, 0x3120, 0x3230, 0x2034, 
+0x202a, 0x2931, "\000" 
+    1017, 0x403, 23, 0
+0x2032, 0x424d, 0x2820, 0x3031, 0x3432, 0x2a20, 0x3120, 0x3230, 0x2034, 
+0x202a, 0x2932, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About BitZam..."
+    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\BitZam.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

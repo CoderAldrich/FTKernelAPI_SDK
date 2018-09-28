@@ -1,0 +1,982 @@
+{
+//////////////////////////////////////////////////////////////////////////
+// FTKernelAPI.pas
+//
+// English Notes:
+//
+// Copyright @ 2004-2006 p2plib.com All rights reserved.
+// MSN: FlashBT@Hotmail.com
+// Homepage: http://www.p2plib.com
+//
+// FTKernelAPI is a kernel API based on Bittorrent protocol.
+//
+// Please use and enjoy. Please let me know of any bugs/mods/improvements
+// that you have found and I will fix them into this library.
+//
+// Please visit http://www.p2plib.com for the detailed information.
+//
+// ***********************************************************************
+// Chinese Notes:
+//
+// 版权所有 2004-2006 北京惠软畅联网络技术有限公司 保留所有权利. 中国.
+// 官方网站: http://www.p2plib.com/
+//
+// FTKernelAPI 是基于BitTorrent协议的内核库, 并做了强大扩展. 可以帮助您
+// 快速的开发自己的P2P软件系统.
+//
+// FTKernelAPI 兼容BT协议内核库, 分为4个版本:
+// 1. 免费版本, 使用受限制, 只支持一个并发任务, 无技术支持
+// 2. 初级版本, 需付费, 支持多个任务并发, 有技术支持
+// 3. 中级版本, 需付费, 支持自定义协议, 数据加密, 封锁指定IP, 限速等功能, 有技术支持
+// 4. 高级版本, 需付费, 支持顺序下载, 流媒体点播, 被动回调加载任务, 有技术支持
+//
+// 如果发现任何错误/建议, 请通知我们, 我们将在以后的版本中很快改进和实现.
+// 更详细信息请访问我的网站: http://www.p2plib.com
+//////////////////////////////////////////////////////////////////////////
+}
+
+unit FTKernelAPI;
+
+interface
+
+uses
+  windows, SysUtils;
+
+type
+
+  //定义64位无符号长整型
+  //Define 64bit long integer type
+  QWORD = int64;
+
+  //定义配置文件对象的句柄
+  //Define Config INI file handle
+  HConfigIni = PLongWord;
+
+  //定义下载任务的句柄
+  //Define downloader handle
+  HDownloader = PLongWord;
+
+  //定义读取Torrent文件的句柄
+  //Define Torrent file handle
+  HTorrentFile = PLongWord;
+
+  //定义生成Torrent文件的句柄
+  //Define Making Torrent file handle
+  HMakeTorrent = PLongWord;
+
+  //定义一个对应C语言中的字节数组
+  //Define Array of byte like C language
+  ArrayByte = array of BYTE;
+
+  //定义被动通知的回调函数
+  //Define callback function type
+  FTK_CALLBACK_FUNC = function(nSocket: UINT = 0; pData: PByte = nil): Boolean; stdcall;
+
+const
+
+  //FTKernelAPI 动态库的名称
+  //Name of FTKernelAPI dynamic library
+  FTKernelAPI_Library = 'FTKernelAPI.dll';
+
+  //用户标识的长度
+  //length of client identifier
+  IDSIZE = 20;
+
+  //BitTorrent 客户端版本信息长度
+  //bitorrent client version information
+  AGENTSIZE = 64;
+
+  //生成的SHA的散列的长度
+  //Length of SHA1
+  SHA1_DIGEST_LENGTH = 20;
+
+  //代理的类型
+  //Proxytypes
+  PROXYTYPE_NOPROXY = 0;
+  PROXYTYPE_SOCKS4 = 1;
+  PROXYTYPE_SOCKS4A = 2;
+  PROXYTYPE_SOCKS5 = 3;
+  PROXYTYPE_HTTP11 = 4;
+
+  ////////////////////////
+  //下载状态
+  //Download status
+
+  DLSTATE_NONE = 0;
+  DLSTATE_ALLOCING = 1;
+  DLSTATE_CHECKING = 2;
+  DLSTATE_DOWNLOAD = 3;
+  DLSTATE_PAUSING = 4;
+  DLSTATE_CHECKEND = 5;
+  DLSTATE_FETALERR = 6;
+  DLSTATE_TERMINATE = 7;
+
+  //定义Piece的状态
+  //Piece status
+  PIECESTATE_INCOMPLETE = 0;
+  PIECESTATE_DOWNLOADING = 1;
+  PIECESTATE_COMPLETE = 2;
+
+  //Port type of Firewall and UPnP
+  //操做Windows防火墙或者UPnP时的端口类型定义
+  WCXT_TCP_PORT = 1;
+  WCXT_UDP_PORT = 2;
+
+type
+  _tagPeerData = packed record
+    m_dwIP: DWORD;
+    m_nPort: WORD;
+    m_pPeerID: array[0..IDSIZE - 1] of BYTE;
+
+    //-------------------------------------
+
+    m_bIsLocal: BYTE;
+    m_szVersion: array[0..AGENTSIZE - 1] of Char;
+    m_qwPeerHaveSize: QWORD;
+    m_fDownRate: Single;
+    m_fUpRate: Single;
+    m_qwDownloaded: QWORD;
+    m_qwUploaded: QWORD;
+    m_fTimeElapsed: Single;
+    m_fPeerDownRate: Single;
+    m_szExtInfo: array[0..256 - 1] of char;
+  end;
+
+  ArrayPeerData = array of _tagPeerData;
+
+type
+  _tagMiniPeerData = packed record
+    m_dwIP: DWORD;
+    m_nPort: WORD;
+  end;
+
+  ArrayMiniPeerData = array of _tagMiniPeerData;
+
+type
+  _tagAnnounceData = packed record
+    m_szURL: array[0..512 - 1] of char;
+    m_bWorking: BYTE;
+    m_bHeader: BYTE;
+    m_nCount: UINT;
+    m_nFailed: UINT;
+    m_fTimeLeft: Single;
+    m_fLastTime: Single;
+    m_szExtInfo: array[0..512 - 1] of char;
+  end;
+
+  ArrayAnnounceData = array of _tagAnnounceData;
+
+type
+  _tagFileInfo = packed record
+    m_szFileName: array[0..512 - 1] of char;
+    m_qwFileSize: QWORD;
+  end;
+
+  ArrayFileInfo = array of _tagFileInfo;
+  PFileInfoX = ^_tagFileInfo;
+
+type
+  _tagErrInfo = packed record
+    m_szErrInfo: array[0..1024 - 1] of char;
+  end;
+
+  PErrorInfo = ^_tagErrInfo;
+
+type
+  _tagAnnounce = packed record
+    m_szAnnounce: array[0..512 - 1] of char;
+    m_szStatus: array[0..512 - 1] of char;
+    m_fLastTime: double;
+    m_nTotalCount: UINT;
+    m_nFailCount: UINT;
+    m_nTimeOut: UINT;
+  end;
+
+  ArrayAnnounce = array of _tagAnnounce;
+
+  //////////////////////////////////////////////////////////////////////////
+  //Libary License Interface
+
+  //Set license key
+  //设置license的密钥
+procedure FTK_License_Set(lpszLicense: PChar); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Library version information
+
+//获取当前库的版本信息, 例如: nMajor = 1, nMinor = 1 => ver: 1.1
+//Get library major version, example: nMajor = 1, nMinor = 1 => ver: 1.1
+procedure FTK_Version_Info(nMajor: PInteger; nMinor: PInteger); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Define yourself protocol identifier string
+
+//Define yourself protocol identifier string(to avoid Router filter)
+//定义你自己的网络协议标识，可以避开某些网络运营商的协议封锁
+procedure FTK_Protocol_IDS(pIDS: PChar; bAllowOtherIDS: Boolean = False); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Define yourself user identifier
+
+//Define yourself user identifier(read by tracker)
+//定义自己的用户标识信息(Tracker服务器可以获取到)
+procedure FTK_Identifier_String10(pS: PChar); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Define yourself http tracker "UserAgent"
+
+//Define yourself http tracker "UserAgent"
+//定义自己的提交给http tracker的http协议中的"UserAgent"
+procedure FTK_Http_UserAgent(lpszUA: PChar); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Config INI file interface
+
+//创建一个新的配置文件句柄
+//Create a new Config INI file handle
+function FTK_Config_Open(): HConfigIni; stdcall; external FTKernelAPI_Library;
+
+//销毁一个存在的配置文件句柄
+//Destroy a HConfigIni hanle
+procedure FTK_Config_Close(hConfigIni: HConfigIni); stdcall; external FTKernelAPI_Library;
+
+//设置字符串选项
+//Set string value item
+procedure FTK_Config_SetStr(hConfigIni: HConfigIni; lpszName: LPCTSTR; lpszValue: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//设置整型值选项
+//Set integer value item
+procedure FTK_Config_SetInt(hConfigIni: HConfigIni; lpszName: LPCTSTR; nValue: QWORD); stdcall; external FTKernelAPI_Library;
+
+//设置浮点型选项
+//Set float value item
+procedure FTK_Config_SetFloat(hConfigIni: HConfigIni; lpszName: LPCTSTR; fValue: double); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Context interface
+
+//环境初始化
+//Initialize context
+//@lpszIniFile: kernel configuration file - INI file
+function FTK_Context_Init(lpszIniFile: LPCTSTR = nil; bLog: Boolean = True): boolean; stdcall; external FTKernelAPI_Library;
+
+//环境初始化
+//Initialize context
+//@lpszIniFile: kernel configuration file - INI file
+function FTK_Context_Init2(hConfigIni: HConfigIni; bLog: Boolean = True): boolean; stdcall; external FTKernelAPI_Library;
+
+//设置被动通知的回调函数
+//Set callback funtion pointer
+procedure FTK_Context_NotifyCB(pfn: FTK_CALLBACK_FUNC); stdcall; external FTKernelAPI_Library;
+
+//释放整个环境
+//Release context
+procedure FTK_Context_Release(); stdcall; external FTKernelAPI_Library;
+
+//整个环境的事件驱动引擎
+//Context event driver
+function FTK_Context_Run(): boolean; stdcall; external FTKernelAPI_Library;
+
+//强迫退出环境, 停止运行
+//在停止时要退出正在运行的线程所以可能要稍微等待
+//Stop context event driver
+procedure FTK_Context_Stop(); stdcall; external FTKernelAPI_Library;
+
+//重新根据配置文件绑定端口
+//Rebind listen port
+procedure FTK_Context_ReBindListenPort(); stdcall; external FTKernelAPI_Library;
+
+//判断是否已经初始化
+//Is context initialized?
+function FTK_Context_IsInit(): boolean; stdcall; external FTKernelAPI_Library;
+
+//是否监听成功了端口
+//Is context running?
+function FTK_Context_IsRunning(): boolean; stdcall; external FTKernelAPI_Library;
+
+//判断是否已经运行
+//Return context thread ID
+function FTK_Context_GetThreadID(): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取线程的ID
+//Return listening port
+function FTK_Context_GetListenPort(): Word; stdcall; external FTKernelAPI_Library;
+
+//重新指定端口绑定操作
+//Return binding ip address
+function FTK_Context_GetBindIP(): PChar; stdcall; external FTKernelAPI_Library;
+
+//判断是否绑定端口操作成功
+//return bind listen port status
+function FTK_Context_IsBindListenPort(): Boolean; stdcall; external FTKernelAPI_Library;
+
+//修改强制内核提交Tracker的IP地址
+//Tell kernel the ip address to submit to tracker
+procedure FTK_Context_SetForceIP(lpszIP: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//设置兼容某些常见的错误torrent格式
+//Set to open some mistake mistaken TORRENT file
+procedure FTK_Context_TorrentFile(bValidEof: Boolean = True; bValidSort: Boolean = True); stdcall; external FTKernelAPI_Library;
+
+//设置日志的语言文件
+//Set language to write log
+procedure FTK_Context_OpenLanguageFile(lpszLanguageFile: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Context active sharing files
+
+//增加一个Hash值(大写的不带'%'的HEX字符串)和对应的信息进来
+procedure FTK_Context_ShareTorrent(lpszInfoHex: LPCTSTR; lpszAnnounce: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//删除一个Hash值及其附带的对应信息
+procedure FTK_Context_UnshareTorrent(lpszInfoHex: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Downloader interface
+
+//Create a new HDownloader handle
+function FTK_Downloader_Open(): HDownloader; stdcall; external FTKernelAPI_Library;
+
+//Destroy a HDownloader hanle
+procedure FTK_Downloader_Close(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//提前的初始化IP过滤对象的函数(FTK_Downloader_Init* 函数之前调用), 过滤某些段的IP地址, "ipfilter.dat" 文件和eMule(电骡)兼容
+//Previous Initialize IP filter object to filter some peer's IP, "ipfilter.dat" file is compatiable with eMule.
+function FTK_Downloader_PreInitIPFilter(hDownloader: HDownloader; lpszIPFilterFile: LPCTSTR; nLevel: UINT = 127): Boolean; stdcall; external FTKernelAPI_Library;
+
+//提前的初始化, 按照块的先后顺序进行下载(适用于边下载边播放的情况)
+//Previous Initialize, Tell kernel to sequential download piece
+procedure FTK_Downloader_PreInitSEQMode(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//预先初始化文件选择下载的优先级别
+//数组中，每个元素的值表示: -2:不下载, -1: 低, 0: 一般, 1:高
+//Previous Initialize, Tell kernel to Set priority of file
+//-2: no download, -1: low, 0: middle, 1: high
+procedure FTK_Downloader_PreInitFilePriority(hDownloader: HDownloader; pFilePriority: PChar; nFilesCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//预先初始化Tracker列表，使用外部提供的Tracker列表，替代Torrent文件中的Tracker列表
+//Tracker1;Tracker2;Tracker3|Tracker1;Tracker2|Tracker1;Tracker2
+procedure FTK_Downloader_PreInitTrackers(hDownloader: HDownloader; lpszAnnouces: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//初始化下载对象
+//Initialize a HDownloader
+//@lpszTorrentFileName: a torrent file name
+//@pPreAllocFile: a array of preallocated files, 0->no, 1->yes
+//@nPreAllocFileLen: length of preallocated array
+//@bOnlyCheckFile: only verify data of files
+//@lpszDestFileName: the downloaded filename
+//@lpszConfig: kernel configuration file - INI file
+//@lpszLogFileName: output log filename
+//@lpszStatusFileName: downloading status filename
+//@lpszDesKey: DES-EDE2 password
+//@nCodePage: code page of the torrent file
+function FTK_Downloader_Init(
+  hDownloader: HDownloader;
+  lpszTorrentFileName: LPCTSTR;
+  pPreAllocFile: PByte;
+  nPreAllocFileLen: Integer;
+  bOnlyCheckFile: boolean = FALSE;
+  lpszDestFileName: LPCTSTR = nil;
+  lpszConfig: LPCTSTR = nil;
+  lpszLogFileName: LPCTSTR = nil;
+  lpszStatusFileName: LPCTSTR = nil;
+  bQuickySeed: Boolean = False;
+  lpszDesKey: LPCTSTR = nil;
+  nCodePage: UINT = CP_ACP): boolean; stdcall; external FTKernelAPI_Library;
+
+//初始化下载对象
+//Initialize a HDownloader
+//@lpszTorrentFileName: a torrent file name
+//@pPreAllocFile: a array of preallocated files, 0->no, 1->yes
+//@nPreAllocFileLen: length of preallocated array
+//@bOnlyCheckFile: only verify data of files
+//@lpszDestFileName: the downloaded filename
+//@lpszConfig: kernel configuration file - INI file
+//@lpszLogFileName: output log filename
+//@lpszStatusFileName: downloading status filename
+//@lpszDesKey: DES-EDE2 password
+//@nCodePage: code page of the torrent file
+function FTK_Downloader_Init2(
+  hDownloader: HDownloader;
+  lpszTorrentFileName: LPCTSTR;
+  pPreAllocFile: PByte;
+  nPreAllocFileLen: Integer;
+  bOnlyCheckFile: boolean = FALSE;
+  lpszDestFileName: LPCTSTR = nil;
+  hConfigIni: HConfigIni = nil;
+  lpszLogFileName: LPCTSTR = nil;
+  lpszStatusFileName: LPCTSTR = nil;
+  bQuickySeed: Boolean = False;
+  lpszDesKey: LPCTSTR = nil;
+  nCodePage: UINT = CP_ACP): boolean; stdcall; external FTKernelAPI_Library;
+
+//初始化下载对象3
+//Initialize a HDownloader
+//@pData: a torrent binary object, a pointer to a binary torrent file content
+//@nLength: the length of a torrent binary object
+//@pPreAllocFile: a array of preallocated files, 0->no, 1->yes
+//@nPreAllocFileLen: length of preallocated array
+//@bOnlyCheckFile: only verify data of files
+//@lpszDestFileName: the downloaded filename
+//@lpszConfig: kernel configuration file - INI file
+//@lpszLogFileName: output log filename
+//@lpszStatusFileName: downloading status filename
+//@lpszDesKey: DES-EDE2 password
+//@nCodePage: code page of the torrent file
+function FTK_Downloader_Init3(
+  hDownloader: HDownloader;
+  pData: PChar;
+  nLength: Integer;
+  pPreAllocFile: PByte;
+  nPreAllocFileLen: Integer;
+  bOnlyCheckFile: Boolean = False;
+  lpszDestFileName: LPCTSTR = nil;
+  lpszConfig: LPCTSTR = nil;
+  lpszLogFileName: LPCTSTR = nil;
+  lpszStatusFileName: LPCTSTR = nil;
+  bQuicklySeed: Boolean = False;
+  lpszDesKey: LPCTSTR = nil;
+  nCodePage: UINT = CP_ACP): boolean; stdcall; external FTKernelAPI_Library;
+
+//初始化下载对象4
+//Initialize a HDownloader
+//@pData: a torrent binary object, a pointer to a binary torrent file content
+//@nLength: the length of a torrent binary object
+//@pPreAllocFile: a array of preallocated files, 0->no, 1->yes
+//@nPreAllocFileLen: length of preallocated array
+//@bOnlyCheckFile: only verify data of files
+//@lpszDestFileName: the downloaded filename
+//@hConfigIni: kernel configuration file handle - INI file
+//@lpszLogFileName: output log filename
+//@lpszStatusFileName: downloading status filename
+//@lpszDesKey: DES-EDE2 password
+//@nCodePage: code page of the torrent file
+function FTK_Downloader_Init4(
+  hDownloader: HDownloader;
+  pData: PChar;
+  nLength: Integer;
+  pPreAllocFile: PByte;
+  nPreAllocFileLen: Integer;
+  bOnlyCheckFile: Boolean = False;
+  lpszDestFileName: LPCTSTR = nil;
+  hConfigIni: HConfigIni = nil;
+  lpszLogFileName: LPCTSTR = nil;
+  lpszStatusFileName: LPCTSTR = nil;
+  bQuicklySeed: Boolean = False;
+  lpszDesKey: LPCTSTR = nil;
+  nCodePage: UINT = CP_ACP): boolean; stdcall; external FTKernelAPI_Library;
+
+//释放下载对象
+//Release downloader handle
+function FTK_Downloader_Release(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//执行下载线程
+//Execute downloader
+function FTK_Downloader_Execute(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//暂停下载
+//Pause downloader
+procedure FTK_Downloader_Pause(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//恢复下载
+//Resume downloader
+procedure FTK_Downloader_Resume(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//是否已经初始化
+//Is downloader intialized?
+function FTK_Downloader_IsInit(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//获取下载任务目前的阶段状态
+//Return downloader state
+function FTK_Downloader_GetState(hDownloader: HDownloader): Integer stdcall; external FTKernelAPI_Library;
+
+//是否只是进行文件检查
+//Only checking file, don't downloading...
+function FTK_Downloader_IsOnlyCheckFile(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//是否已经完成了下载(判断选择文件下载)
+//Is all selected files finished?
+function FTK_Downloader_IsFinished(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//是否已经完成了下载(全部下载)
+//Is all files finished?
+function FTK_Downloader_IsAllFinished(hDownloader: HDownloader): boolean; stdcall; external FTKernelAPI_Library;
+
+//连接指定的Peer
+//Add external source peer
+procedure FTK_Downloader_AddSource(hDownloader: HDownloader; const pchIP: PChar; nPort: Word; const pPeerID: PByte = nil); stdcall; external FTKernelAPI_Library;
+
+//连接指定的User
+//Add external source peer(socket handle)
+procedure FTK_Downloader_AddSourceExt(hDownloader: HDownloader; nSocket: UINT); stdcall; external FTKernelAPI_Library;
+
+//外部动态增加辅助的Announce
+//Add external announce
+procedure FTK_Downloader_AddExtAnnounce(hDownloader: HDownloader; lpszAnnounce: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//手动控制Announce马上进行连接
+//Reannounce manually
+procedure FTK_Downloader_ReannounceAll(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//按照块的先后顺序进行下载(适用于边下载边播放的情况)
+ //Tell kernel to sequential download piece
+procedure FTK_Downloader_SetSeqPicker(hDownloader: HDownloader; bSeq: Boolean = False; nSEQFileIndex: Integer = 0); stdcall; external FTKernelAPI_Library;
+
+//设置下载文件的优先级别
+// -2:不下载, -1: 低, 0: 一般, 1:高
+//Set priority of file
+//-2: no download, -1: low, 0: middle, 1: high
+procedure FTK_Downloader_SetFilePriority(hDownloader: HDownloader; nIndex: Integer; chPriority: Byte = 0; bDoPriority: boolean = TRUE); stdcall; external FTKernelAPI_Library;
+
+//强制立刻重新将文件的优先级赋值给Piece
+//Force to set priority of all piece immediately
+procedure FTK_Downloader_ForceFilePriority(hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//外部调用, 手动设置最大的下载率限制(0.0表示没有限制)
+//Set fixed max download rate
+procedure FTK_Downloader_SetFixMaxDownloadRate(hDownloader: HDownloader; fMaxDownloadRate: Double = 0.0); stdcall; external FTKernelAPI_Library;
+
+//外部调用, 获取手动设置最大的下载率限制(0.0表示没有限制)
+//Get fixed max download rate
+function FTK_Downloader_GetFixMaxDownloadRate(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//外部调用, 手动设置最大的上传率限制(0.0表示没有限制)
+//Set fixed max upload rate
+procedure FTK_Downloader_SetFixMaxUploadRate(hDownloader: HDownloader; fMaxUploadRate: Double = 0.0); stdcall; external FTKernelAPI_Library;
+
+//外部调用, 获取手动设置最大的上传率限制(0.0表示没有限制)
+//Get fixed max upload rate
+function FTK_Downloader_GetFixMaxUploadRate(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//主动限制某些特定的种子服务器(SEED), 给自己的最大的上传率(0表示没有限制, 注意单位是: KB)
+//Set fixed max upload rate of SOME CERTAIN SEED to me, 0 means no limit, UNIT is KB
+procedure FTK_Downloader_SetSeedMaxUPSpeed(hDownloader: HDownloader; nSpeed: UINT = 0); stdcall; external FTKernelAPI_Library;
+
+//多少秒中内，禁止某个IP的连接, 只在当前任务存在期间有效
+//Ban IP for X seconds, ONLY for the current active HDownloader
+procedure FTK_Downloader_BanPeerIP(hDownloader: HDownloader; lpszIP: LPCTSTR; nBannedSeconds: UINT); stdcall; external FTKernelAPI_Library;
+
+//获取线程的ID
+//Get thread ID
+function FTK_Downloader_GetThreadID(hDownloader: HDownloader): DWord; stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//全局参数设置
+//Global settings
+
+//将某个Torrent文件的SHA1值加入队列
+//Add torrent into SHA1 list
+procedure FTK_GlobalVar_AddTorrentSHA1(lpszSHA: LPCTSTR; hDownloader: HDownloader); stdcall; external FTKernelAPI_Library;
+
+//将某个Torrent文件的SHA1值从队列中删除
+//Remove torrent from SHA1 list
+procedure FTK_GlobalVar_RemoveTorrentSHA1(lpszSHA: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//代理服务器函数列表
+//Proxy interface
+
+//设置仅在连接Tracker时使用代理服务器
+//Only tracker using proxy settings
+procedure FTK_Proxy_SetOnlyTracker(bOnlyTracker: boolean = FALSE); stdcall; external FTKernelAPI_Library;
+
+//清空当前的代理信息(仅用于PROXYTYPE_NOPROXY)
+//Only PROXYTYPE_NOPROXY
+procedure FTK_Proxy_SetType(nProxyType: Integer); stdcall; external FTKernelAPI_Library;
+
+//设置代理(不能是PROXYTYPE_NOPROXY)
+//May not be PROXYTYPE_NOPROXY
+procedure FTK_Proxy_SetProxy(nProxyType: Integer; const pProxyHost: PChar; ProxyPort: Integer); stdcall; external FTKernelAPI_Library;
+
+//设置SOCKS5和HTTP1.1需要认证信息的代理
+//Only SOCKS5 and HTTP1.1 proxies
+procedure FTK_Proxy_SetAuthProxy(nProxyType: Integer; const pProxyHost: PChar; ProxyPort: Integer; const pProxyUser: PChar; const pProxyPass: PChar); stdcall; external FTKernelAPI_Library;
+
+//获取代理的类型
+//Return proxy type
+function FTK_Proxy_GetProxyType(): Integer; stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Downloader statistic information interface
+
+//获取总共已经下载(验证成功)的数据
+//Get the size of having received data for all file
+function FTK_Stat_GetTotalFileHaveSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取选择已经下载(验证成功)的数据
+//Get the size of having received data for a file
+function FTK_Stat_GetSelectedFileHaveSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取已经顺序下载的目前可以从头开始播放的数据长度
+//Get the size of sequential piece from file front
+function FTK_Stat_GetStartSeqFileSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取最近一次下载的字节数
+//Get the size of lasted receiving data
+function FTK_Stat_GetLastDataSize(hDownloader: HDownloader): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取总共丢弃的字节数
+//Get the size of bad data
+function FTK_Stat_GetBadDataSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//当前总共的连接的个数
+//Get the number of total peer
+function FTK_Stat_GetTotalPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//当前主动连接的个数
+//Get the number of active peer
+function FTK_Stat_GetActivePeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//当前的被动连接的个数
+//Get the number of passive peer
+function FTK_Stat_GetPassivePeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//当前正在连接中的个数
+//Get number of connecting peer
+function FTK_Stat_GetConnectingPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取已经连接的种子的个数
+//Get number of seed
+function FTK_Stat_GetSeedCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取正在上传的连接的个数
+//Get the number of uploading peer
+function FTK_Stat_GetUploadPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取正在下载的连接的个数
+//Get the number of downloading peer
+function FTK_Stat_GetDownloadPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取总共可以获取的Seed的个数
+//Get the number of total available seed
+function FTK_Stat_GetTotalAvailSeedCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取总共可以获取的Peer的个数
+//Get the number of peer
+function FTK_Stat_GetTotalAvailPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//旧的种子的个数
+//Get old seed number
+function FTK_Stat_GetOldSeedPeerCount(hDownloader: HDownloader): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取是否至少已经有一个Tracker连接成功
+//Is any tracker successfull?
+function FTK_Stat_IsAnyTrackerOK(hDownloader: HDownloader): Boolean; stdcall; external FTKernelAPI_Library;
+
+//本次运行已经下载的数据长度
+//Get downloaded bytes
+function FTK_Stat_GetDownloaded(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//本次运行已经上传的数据长度
+//Get uploaded bytes
+function FTK_Stat_GetUploaded(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//本次已经运行时间(运行时间不同与下载时间)
+//Get total running time
+function FTK_Stat_GetRunningTime(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//本次下载的时间(如果是做种, 则下载时间永远为0)
+//Get total downloaded time
+function FTK_Stat_GetDownloadTime(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//本次下载剩余的时间, 根据下载率计算
+//Get the left time to download
+function FTK_Stat_GetLeftTime(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取当前的上传率
+//Get upload rate
+function FTK_Stat_GetUploadRate(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取当前的下载率
+//Get downloading rate
+function FTK_Stat_GetDownloadRate(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取指定的Piece的下载进度
+//Get the progress of a piece
+procedure FTK_Stat_GetPieceState(hDownloader: HDownloader; pPiece: PByte; nCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//获取检查文件的进度
+//Get the progress of cheching piece
+function FTK_Stat_GetCheckPieceSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取检查的Piece的个数
+//Get number of checked piece
+function FTK_Stat_GetCheckPieceCount(hDownloader: HDownloader): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取已经分配空间的大小
+//Get the size of allocated file
+function FTK_Stat_GetAllocSpaceSize(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取当前的健康率
+//Get healthy rate
+function FTK_Stat_GetHealthRate(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取当前的最大缓存大小
+//Get the size of max cache
+function FTK_Stat_GetMaxCacheSize(hDownloader: HDownloader): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取已经使用的缓存大小
+//Get the size of used cache
+function FTK_Stat_GetUseCacheSize(hDownloader: HDownloader): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取本次写硬盘的总的次数
+//Get writed disk count
+function FTK_Stat_GetWriteDiskCount(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取本次真正写硬盘的次数
+//Get really writed disk count
+function FTK_Stat_GetRealWriteDiskCount(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取本次读硬盘的总的次数
+//Get readed disk count
+function FTK_Stat_GetReadDiskCount(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取本次真正读硬盘的次数
+//Get really readed disk count
+function FTK_Stat_GetRealReadDiskCount(hDownloader: HDownloader): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取写硬盘的频率(次/秒)
+//Get writing disk frenqence(number/second)
+function FTK_Stat_GetWriteDiskFrenq(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取真正写硬盘的频率(次/秒)
+//Get really writing disk frenqence(number/second)
+function FTK_Stat_GetRealWriteDiskFrenq(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取读硬盘的频率(次/秒)
+//Get reading disk frenqence(number/second)
+function FTK_Stat_GetReadDiskFrenq(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取真正读硬盘的频率(次/秒)
+//Get really reading disk frenqence(number/second)
+function FTK_Stat_GetRealReadDiskFrenq(hDownloader: HDownloader): Double; stdcall; external FTKernelAPI_Library;
+
+//获取当前日志文件的路径+名称
+//Get log file name
+procedure FTK_Stat_GetLogPathFileName(hDownloader: HDownloader; lpszFileName: PChar); stdcall; external FTKernelAPI_Library;
+
+//获取指定的文件的进度
+//Get the progress of a file
+function FTK_Stat_GetFileHaveSize(hDownloader: HDownloader; nIndex: Integer): QWORD; stdcall; external FTKernelAPI_Library;
+
+//获取当前用户状态信息的列表
+//Get the peers information
+procedure FTK_Stat_GetPeerData(hDownloader: HDownloader; pData: ArrayPeerData; nRetCount: PInteger; nMaxCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//获取当前部分用户状态信息的列表
+//Get the some peers information
+procedure FTK_Stat_GetPeerRangeData(hDownloader: HDownloader; pData: ArrayPeerData; nFrom: Integer; nTo: Integer; var nRetCount: Integer; nMaxCount: Integer; bExtInfo: Boolean = False); stdcall; external FTKernelAPI_Library;
+
+//获取当前用户状态信息的列表(只获取IP和端口)
+//Get the peers information(only IP and port)
+procedure FTK_Stat_GetMiniPeerData(hDownloader: HDownloader; pData: ArrayMiniPeerData; nRetCount: PInteger; nMaxCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//获取当前Announce状态信息的列表
+//Get the status of announces
+procedure FTK_Stat_GetAnnounceData(hDownloader: HDownloader; pData: ArrayAnnounceData; nRetCount: PInteger; nMaxCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//获取当前任务的调试信息
+//Get the debug information of downloader
+function FTK_Stat_GetBTDownloaderInfo(hDownloader: HDownloader): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//打开Torrent文件获取信息的函数列表
+//Torrent file interface
+
+//判断是不是自己定义的加密的Torrent文件
+//Return boolean, tell us is a cipher torrent file
+function FTK_Torrent_IsCipherTorrent(lpszFileName: LPCTSTR): boolean; stdcall; external FTKernelAPI_Library;
+
+//执行从文件中读取数据并初始化对象操作
+//Open a torrent file handle
+function FTK_Torrent_Open(lpszFileName: LPCTSTR; nCodePage: UINT = CP_ACP; lpszDesKey: LPCTSTR = nil; bValidEOF: Boolean = True; bValidSort: Boolean = True): HTorrentFile; stdcall; external FTKernelAPI_Library;
+
+//执行从文件中读取数据并初始化对象操作, 如果失败, 返回错误信息
+//Open a torrent file handle, if failed, return error information
+function FTK_Torrent_SafeOpen(lpszFileName: LPCTSTR; nCodePage: UINT = CP_ACP; lpszDesKey: LPCTSTR = nil; bValidEOF: Boolean = True; bValidSort: Boolean = True; pErrInfo: PErrorInfo = nil): HTorrentFile; stdcall; external FTKernelAPI_Library;
+
+//判断是不是自己定义的加密的Torrent数据流对象
+//Return boolean, tell us is a cipher torrent binary data
+function FTK_Torrent_IsCipherTorrentObj(pData: PByte; nLength: Integer): Boolean; stdcall; external FTKernelAPI_Library;
+
+//执行从Torrent binary object中读取数据并初始化对象操作
+//Open a torrent binary object
+function FTK_Torrent_OpenObj(pData: PByte; nLength: Integer; nCodePage: UINT = CP_ACP; lpszDesKey: LPCTSTR = nil; bValidEOF: Boolean = True; bValidSort: Boolean = True; pErrInfo: PErrorInfo = nil): HTorrentFile; stdcall; external FTKernelAPI_Library;
+
+//关闭当前打开的Torrent文件
+//Close Torrent file handle
+procedure FTK_Torrent_Close(hTorrentFile: HTorrentFile); stdcall; external FTKernelAPI_Library;
+
+//判断是目录还是文件
+//Return boolean, tell us is only a single file in torrent
+function FTK_Torrent_IsFile(hTorrentFile: HTorrentFile): boolean; stdcall; external FTKernelAPI_Library;
+
+//获取 Torrent 名称
+//Get the name of torrent file
+function FTK_Torrent_GetTorrentName(hTorrentFile: HTorrentFile): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//获取torrent中的文件的个数(至少一个)
+//Get total number of files
+function FTK_Torrent_GetFilesCount(hTorrentFile: HTorrentFile): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取torrent中的文件列表(至少一个)
+//Get a pointer to file list
+procedure FTK_Torrent_GetFiles(hTorrentFile: HTorrentFile; pFileInfo: ArrayFileInfo); stdcall; external FTKernelAPI_Library;
+
+//获取torrent中的文件列表中的某个文件的信息
+//Get a pointer to a file of file list
+procedure FTK_Torrent_GetFileInfo(hTorrentFile: HTorrentFile; nIndex: Integer; pFileInfo: PFileInfoX); stdcall; external FTKernelAPI_Library;
+
+//获取Info的Hash值, 内部使用
+//Get the binary info hash of torrent file
+function FTK_Torrent_GetInfoHash(hTorrentFile: HTorrentFile): PByte; stdcall; external FTKernelAPI_Library;
+
+//获取info的Hash值, 十六进制
+//Get the hex encoding info hash of torrent file
+function FTK_Torrent_GetHexInfoHash(hTorrentFile: HTorrentFile): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//获取 main annouce url
+//Get mainb announce url
+function FTK_Torrent_GetMainAnnounce(hTorrentFile: HTorrentFile): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//获取 Announce 分组的个数
+//Get the number of all announce list
+function FTK_Torrent_GetAnnouncesCount(hTorrentFile: HTorrentFile): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取指定的 Announce 分组包含的Announce的个数
+//Get the size of a announce list
+function FTK_Torrent_GetAnnounceSize(hTorrentFile: HTorrentFile; nGroupIndex: Integer): Integer; stdcall; external FTKernelAPI_Library;
+
+//获取指定的 Announce 分组中指定位置的Announce
+//Get a annoucne of a announce list
+function FTK_Torrent_GetAnnouncesVal(hTorrentFile: HTorrentFile; nGroupIndex: Integer; nIndex: Integer): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//获取 注释
+//Get the comments
+function FTK_Torrent_GetComments(hTorrentFile: HTorrentFile): LPCTSTR; stdcall; external FTKernelAPI_Library;
+
+//获取 Torrent 创建时间
+//Get the creation time of torrent file
+function FTK_Torrent_GetCreateTime(hTorrentFile: HTorrentFile): TDateTime; stdcall; external FTKernelAPI_Library;
+
+//获取piece块的大小
+//Get the size of piece
+function FTK_Torrent_GetPieceSize(hTorrentFile: HTorrentFile): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取文件的大小
+//Get the total file size to transfer
+function FTK_Torrent_GetFileSize(hTorrentFile: HTorrentFile): QWORD; stdcall; external FTKernelAPI_Library;
+
+//Piece块的个数
+//Get the total number of piece
+function FTK_Torrent_GetPieceCount(hTorrentFile: HTorrentFile): DWord; stdcall; external FTKernelAPI_Library;
+
+//获取Piece Hash 的列表
+//Get a pointer to piece hash list
+function FTK_Torrent_GetPieceHashList(hTorrentFile: HTorrentFile): PByte; stdcall; external FTKernelAPI_Library;
+
+//释放PieceHash列表
+//Release piece hash memory
+procedure FTK_Torrent_FreePieceHashList(hTorrentFile: HTorrentFile); stdcall; external FTKernelAPI_Library;
+
+//获取Torrent文件的语言编码
+//Get language code page of torrent file
+function FTK_Torrent_GetLanCodePage(hTorrentFile: HTorrentFile): UINT; stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//制作Torrent文件的函数列表
+//Create torrent file interface
+
+//打开一个制作torrent文件的句柄
+//Open a making torrent handle
+function FTK_MT_Open(): HMakeTorrent; stdcall; external FTKernelAPI_Library;
+
+//关闭打开的制作Torrent文件的句柄
+//Close a making torrent handle
+procedure FTK_MT_Close(hMakeTorrent: HMakeTorrent); stdcall; external FTKernelAPI_Library;
+
+//执行生成对象的操作
+//Start to making torrent file
+function FTK_MT_MakeTorrent(hMakeTorrent: HMakeTorrent): boolean; stdcall; external FTKernelAPI_Library;
+
+//停止Torrent文件制作
+//Stop making torrent file
+procedure FTK_MT_StopMake(hMakeTorrent: HMakeTorrent); stdcall; external FTKernelAPI_Library;
+
+//获取制作文件的进度
+//Get progress of making torrent file
+function FTK_MT_GetMTProgress(hMakeTorrent: HMakeTorrent): Double; stdcall; external FTKernelAPI_Library;
+
+//另存为Torrent文件
+//Save as a torrent file
+function FTK_MT_SaveAsTorrentFile(hMakeTorrent: HMakeTorrent; lpszFileName: LPCTSTR; lpszDesKey: LPCTSTR = nil): boolean; stdcall; external FTKernelAPI_Library;
+
+//设置 annouce url
+//Set a main announce url
+procedure FTK_MT_SetAnnounceUrl(hMakeTorrent: HMakeTorrent; lpszValue: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//添加额外的Announce 列表
+//Add a announce list
+procedure FTK_MT_AddAnnounceList(hMakeTorrent: HMakeTorrent; Announces: array of LPCTSTR; nCount: Integer); stdcall; external FTKernelAPI_Library;
+
+//添加额外的Announce 列表, example: announce1;announce2;announce3;
+//Add a announce list, example: announce1;announce2;announce3;
+procedure FTK_MT_AddAnnounceList2(hMakeTorrent: HMakeTorrent; lpszAnnounces: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//清空额外的Announce 列表
+//Clear all announce list
+procedure FTK_MT_ClearAnnounceList(hMakeTorrent: HMakeTorrent); stdcall; external FTKernelAPI_Library;
+
+//设置 注释
+//Set comments
+procedure FTK_MT_SetComments(hMakeTorrent: HMakeTorrent; lpszValue: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//设置piece块的大小
+//Set piece size to making torrent file
+procedure FTK_MT_SetPieceSize(hMakeTorrent: HMakeTorrent; dwPieceSize: DWord); stdcall; external FTKernelAPI_Library;
+
+//设置torrent中的文件
+//Set the sourece file to making torrent file
+procedure FTK_MT_SetFile(hMakeTorrent: HMakeTorrent; lpszFileName: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//设置torrent中的文件目录(多个文件)
+//Set the source path to making torrent file
+procedure FTK_MT_SetPath(hMakeTorrent: HMakeTorrent; lpszPathName: LPCTSTR); stdcall; external FTKernelAPI_Library;
+
+//设置Torrent文件的语言代码(只对文件名称, 注释等有效)
+//Set language code of torrent file
+procedure FTK_MT_SetLangCodePage(hMakeTorrent: HMakeTorrent; nCodePage: UINT = CP_ACP); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Disk cache Settings
+
+//Set Disk cache size
+//设置磁盘缓存的大小
+procedure FTK_Disk_SetCache(nMinCacheSize: UINT; nMaxCacheSize: UINT; nPhyMemorySize: UINT); stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+//Windows environment related interfaces
+
+//Get local machine ip address(get the first ip or best ip if there are more than one NICs)
+//获取本机的IP地址(在有多个的情况下，选择第一个，或者按照一定算法选择最合适的一个)
+function FTK_Win_GetLocalIP(bPrivateIP: PInteger): PChar; stdcall; external FTKernelAPI_Library;
+
+//Open Windows ICS/ICF(Windows XP/Windows 2003)
+//打开操作系统的网络连接防火墙和网络连接共享(Windows XP/Windows 2003)
+function FTK_Win_OpenWinXPICSF(nPort: Short; bOpenFirewall: PInteger; bPortMapping: PInteger; nProtocol: Byte = WCXT_TCP_PORT; lpszIP: LPCTSTR = nil; lpszAppName: LPCTSTR = nil): Boolean; stdcall; external FTKernelAPI_Library;
+
+//Open UPnP port mapping(Win9x/WinME/Win2000/WinXP/Win2003)
+//执行对于支持UPnP协议的Router进行自动的端口映射配置(内网处于Router后的机器必用)
+function FTK_Win_AddUPnPPortMapping(nPort: Short; nProtocol: Byte = WCXT_TCP_PORT; lpszIP: LPCTSTR = nil): Boolean; stdcall; external FTKernelAPI_Library;
+
+//Patch Windows XP SP2 tcpip.sys file for best TCP/IP performance
+//对于Windows XP SP2 的tcpip.sys打补丁，破解连接数的限制，提高网络性能
+function FTK_Win_PacthSP2TCPIPLimitFile(nLimit: Integer = 10): Integer; stdcall; external FTKernelAPI_Library;
+
+//////////////////////////////////////////////////////////////////////////
+
+
+implementation
+
+end.
+

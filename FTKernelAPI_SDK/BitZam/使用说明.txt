@@ -1,0 +1,12 @@
+目录结构:
+
+BitZam - C++ 源代码
+FTKernel_API - FTKernelAPI 内核库
+
+编译器: MS VC++ 6.0
+
+编译时: 
+Win32 Debug
+Win32 Release
+
+可以被编译使用。

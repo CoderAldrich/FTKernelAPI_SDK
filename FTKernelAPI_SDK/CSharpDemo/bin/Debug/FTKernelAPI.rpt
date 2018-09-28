@@ -1,0 +1,40 @@
+Exception report created by 0. 6. 6. 1 Build 0661607230
+===================================================
+
+System details:
+---------------
+
+Operating System:      Microsoft Windows XP Home Edition Service Pack 2 (Build 2600)
+Comctl32.dll version: 5.82
+shell32.dll version: 6.0
+Processor Information: Vendor: GenuineIntel, Speed: 1828MHz, Type: Intel Pentium compatible, Number Of Processors: 2, Architecture: Intel, Level: Pentium II/Pro, Stepping: 35-92
+Memory Information:    Memory Used 75%, Total Physical Memory 514412KB, Physical Memory Available 127384KB, Total Virtual Memory 2097024KB, Available Virtual Memory 1927124KB, Working Set Min: 200KB Max: 1380KB .
+
+Exception Details:
+------------------
+
+Exception code: E0434F4D 
+Fault address:  7C812A5B 01:00011A5B C:\WINDOWS\system32\KERNEL32.dll
+
+Registers information:
+-----------------------
+
+EAX:0012EACC
+EBX:FFFFFFFF
+ECX:0014FBD0
+EDX:80131502
+ESI:00000000
+EDI:00000000
+CS:EIP:001B:7C812A5B
+SS:ESP:0023:0012EAC8 EBP:0012EB1C
+DS:0023 ES:0023 FS:003B GS:0000
+Flags:00000246
+
+Call stack:
+-----------
+
+Address   Frame     Function			SourceFile			ModuleFile
+7C812A5B  0012EB1C  RaiseException+(00000052)  C:\WINDOWS\system32\KERNEL32.dll!0001:00011A5B
+79238B7D  0012EB74  GetCompileInfo+(0005EEA2)  C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\mscorwks.dll!0001:00087B7D
+792F0D05  0012EBE0  ReleaseFusionInterfaces+(00048C42)  C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\mscorwks.dll!0001:0013FD05
+7999674B  00C9227C  0001:0000474B c:\windows\assembly\nativeimages1_v1.1.4322\mscorlib\1.0.5000.0__b77a5c561934e089_35ef19e5\mscorlib.dll
