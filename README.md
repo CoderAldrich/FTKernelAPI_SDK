@@ -1,0 +1,2 @@
+# FTKernelAPI_SDK
+FTKernelAPI 是基于BitTorrent协议的内核库，可以根据bt下载资源
